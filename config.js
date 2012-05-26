@@ -3,12 +3,13 @@ module.exports = {
 	pkg : "package.json",
 	version : "0.0.0",
 	wrap : {
-		copy : [],
-		intro : [],
-		outro : []
+		copy : [ "copyright.js" ],
+		intro : [ "intro.js" ],
+		outro : [ "outro.js" ]
 	},
-	src : [],
-	unit : [],
+	src : [ "Array.js" ],
+	unit : [ "Array.js" ],
+	external : [ "classify.js" ],
 	env : {
 		node : true,
 		web : true
@@ -17,7 +18,7 @@ module.exports = {
 		expr : true,
 		node : true,
 		browser : true,
-		predef : []
+		predef : [ "Classify" ]
 	},
 	min : {
 		strict_semicolons : false,
