@@ -10,7 +10,8 @@ var proto = {
 	reverse : arrayProto.reverse,
 	shift : arrayProto.shift,
 	sort : arrayProto.sort,
-	splice : function(index, length) {
+	join : arrayProto.join,
+	splice : function() {
 		return this.constructor.applicate(arrayProto.splice.apply(this, arguments));
 	},
 	unshift : function() {
@@ -18,10 +19,7 @@ var proto = {
 		return this.length;
 	},
 	concat : function(value) {
-		return this.constructor.applicate(arrayProto.concat.apply(this.toArray(), arguments));
-	},
-	join : function(separator) {
-		return this.toArray().join(separator);
+		return this.constructor.applicate(arrayProto.concat.apply(this, arguments));
 	},
 	slice : function(begin, end) {
 		return this.constructor.applicate(arrayProto.slice.apply(this, arguments));
@@ -37,7 +35,7 @@ var proto = {
 		return this;
 	},
 	copy : function() {
-		return this.constructor.applicate(arrayProto.splice.call(this.toArray(), 0));
+		return this.constructor.applicate(arrayProto.slice.call(this, 0));
 	},
 	fill : function(length, value) {
 		this.clear();
@@ -45,6 +43,9 @@ var proto = {
 			this.push(value);
 		}
 		return this;
+	},
+	range : function(start, end, step) {
+
 	},
 	indexOf : arrayProto.indexOf || function(value) {
 		var i = 0, len = this.length;
@@ -86,6 +87,12 @@ var proto = {
 	},
 	rand : function() {
 		return this[Math.round(Math.random() * (this.length - 1))];
+	},
+	diff : function(array) {
+
+	},
+	intersect : function(array) {
+
 	},
 	asyncEach : function(iterator, callback, context, delay) {
 		// clone this array
@@ -160,9 +167,7 @@ var proto = {
 				i++;
 			}
 		}
-		var obj = new this.constructor();
-		obj.push.apply(obj, items);
-		return obj;
+		return this.constructor.applicate(items);
 	},
 	some : arrayProto.some || function(iterator, context) {
 		var i = 0, len = this.length;
@@ -174,16 +179,14 @@ var proto = {
 		}
 		return false;
 	},
-	reduce : arrayProto.reduce || function(iterator) {
-		var i = 0, len = this.length, accumulator;
+	reduce : arrayProto.reduce || function(iterator, accumulator) {
+		var i = 0, len = this.length;
 		if (arguments.length < 2) {
 			if (len === 0) {
 				throw new TypeError("Array length is 0 and no second argument");
 			}
 			accumulator = this[0];
 			i = 1; // start accumulating at the second element
-		} else {
-			accumulator = arguments[1];
 		}
 		while (i < len) {
 			accumulator = iterator.call(null, accumulator, this[i], i, this);
@@ -191,17 +194,15 @@ var proto = {
 		}
 		return accumulator;
 	},
-	reduceRight : arrayProto.reduceRight || function(iterator) {
+	reduceRight : arrayProto.reduceRight || function(iterator, accumulator) {
 		var len = this.length;
 		// no value to return if no initial value, empty array
 		if (len === 0 && arguments.length === 1) {
 			throw new TypeError("Array length is 0 and no second argument");
 		}
 
-		var i = len - 1, accumulator;
-		if (arguments.length >= 2) {
-			accumulator = arguments[1];
-		} else {
+		var i = len - 1;
+		if (arguments.length < 2) {
 			accumulator = this[i--];
 		}
 
@@ -211,6 +212,19 @@ var proto = {
 		}
 
 		return accumulator;
+	},
+	threadEach : function(iterator, callback, context) {
+		var array = this, len = this.length, complete = function() {
+			if (--len === 0) {
+				callback && callback.call(context || null, array);
+			}
+		};
+		return this.asyncEach(function(v, i, array) {
+			iterator.call(context || null, v, i, complete, array);
+		}, null, context, 1);
+	},
+	unique : function() {
+
 	}
 };
 
