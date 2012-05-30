@@ -144,9 +144,23 @@ QUnit.test("join", function() {
 });
 
 QUnit.test("slice", function() {
-	QUnit.expect(0);
+	QUnit.expect(7);
 	var cArray = Classify("/Array");
 	var cInstance = cArray(1, 2, 3, 4, 5, 6);
+
+	// splice operator
+	var sliced = cInstance.slice(1, 1);
+	QUnit.ok(sliced instanceof cArray, "Slice method returns an instance of array");
+	QUnit.equal(sliced[0], undefined, "No Sliced value returned when slicing 0 elements");
+
+	sliced = cInstance.slice(1, 2);
+	QUnit.equal(sliced[0], 2, "Sliced value returned when slicing 1 element");
+	QUnit.equal(cInstance[1], 2, "Sliced value removed from original array");
+	QUnit.equal(sliced.length, 1, "Sliced length is the number of items sliced");
+	QUnit.equal(cInstance.length, 6, "Original array length reduced with slice");
+
+	slicedA = cInstance.slice(1, 2);
+	QUnit.equal(slicedA.length, 1, "Sliced length is the number of items spliced");
 });
 
 QUnit.test("shuffle", function() {
@@ -162,15 +176,29 @@ QUnit.test("copy", function() {
 });
 
 QUnit.test("fill", function() {
-	QUnit.expect(0);
+	QUnit.expect(3);
 	var cArray = Classify("/Array");
-	var cInstance = cArray(1, 2, 3, 4, 5, 6);
+	var cInstance = cArray().fill(5, 1);
+
+	QUnit.equal(cInstance.length, 5, "fill adds proper number of items");
+	QUnit.equal(cInstance[0], 1, "fill adds proper value to beginning of array");
+	QUnit.equal(cInstance[4], 1, "fill adds proper value to end of array");
+
 });
 
 QUnit.test("range", function() {
-	QUnit.expect(0);
+	QUnit.expect(8);
 	var cArray = Classify("/Array");
 	var cInstance = cArray(1, 2, 3, 4, 5, 6);
+
+	QUnit.equal(cArray().range(0).join(""), "", "range with 0 as a first argument generates an empty array");
+	QUnit.equal(cArray().range(4).join(" "), "0 1 2 3", "range with a single positive argument generates an array of elements 0,1,2,...,n-1");
+	QUnit.equal(cArray().range(5, 8).join(" "), "5 6 7", "range with two arguments a & b, a < b generates an array of elements a,a+1,a+2,...,b-2,b-1");
+	QUnit.equal(cArray().range(8, 5).join(""), "", "range with two arguments a & b, b > a generates an empty array");
+	QUnit.equal(cArray().range(3, 10, 3).join(" "), "3 6 9", "range with three arguments a & b & c, c < b-a, a < b generates an array of elements a,a+c,a+2c,...,b - (multiplier of a) < c");
+	QUnit.equal(cArray().range(3, 10, 15).join(""), "3", "range with three arguments a & b & c, c > b-a, a < b generates an array with a single element, equal to a");
+	QUnit.equal(cArray().range(12, 7, -2).join(" "), "12 10 8", "range with three arguments a & b & c, a > b, c < 0 generates an array of elements a,a-c,a-2c and ends with the number not less than b");
+	QUnit.equal(cArray().range(0, -10, -1).join(" "), "0 -1 -2 -3 -4 -5 -6 -7 -8 -9", "final example in the Python docs");
 });
 
 QUnit.test("indexOf", function() {
@@ -178,7 +206,7 @@ QUnit.test("indexOf", function() {
 	var cArray = Classify("/Array");
 	var cInstance = cArray(1, 2, 3, 3, 2, 1);
 
-	QUnit.equal(cInstance.indexOf(2), 1, 'retrieve the first index of searched value');
+	QUnit.equal(cInstance.indexOf(2), 1, "retrieve the first index of searched value");
 	QUnit.equal(cInstance.indexOf(4), -1, "4 is not in the list");
 });
 
@@ -187,14 +215,17 @@ QUnit.test("lastIndexOf", function() {
 	var cArray = Classify("/Array");
 	var cInstance = cArray(1, 2, 3, 3, 2, 1);
 
-	QUnit.equal(cInstance.lastIndexOf(2), 4, 'retrieve the last index of searched value');
+	QUnit.equal(cInstance.lastIndexOf(2), 4, "retrieve the last index of searched value");
 	QUnit.equal(cInstance.lastIndexOf(4), -1, "4 is not in the list");
 });
 
 QUnit.test("include", function() {
-	QUnit.expect(0);
+	QUnit.expect(2);
 	var cArray = Classify("/Array");
-	var cInstance = cArray(1, 2, 3, 4, 5, 6);
+	var cInstance = cArray(1, 2, 3, 3, 2, 1);
+
+	QUnit.equal(cInstance.include(2), true, "true if item is in array");
+	QUnit.equal(cInstance.include(4), false, "false if item is not in array");
 });
 
 QUnit.test("clear", function() {
@@ -235,33 +266,142 @@ QUnit.test("rand", function() {
 });
 
 QUnit.test("diff", function() {
-	QUnit.expect(0);
+	QUnit.expect(4);
 	var cArray = Classify("/Array");
+
 	var cInstance = cArray(1, 2, 3, 4, 5, 6);
+
+	QUnit.equal(cInstance.diff([ 1, 2 ]).join(), "3,4,5,6", "can take the set diff of two arrays");
+
+	QUnit.equal(cInstance.diff(cArray(1, 2)).join(), "3,4,5,6", "can take the set diff of two classify arrays");
+
+	QUnit.equal(cInstance.diff(cArray(1, 2), [ 3 ]).join(), "4,5,6", "can take the set diff of multiple arrays");
+
+	QUnit.equal(cInstance.diff(cArray(1, 2), [ 3 ], 4).join(), "5,6", "can take the set diff of multiple arrays and mixed args");
 });
 
 QUnit.test("intersect", function() {
-	QUnit.expect(0);
+	QUnit.expect(4);
 	var cArray = Classify("/Array");
+
 	var cInstance = cArray(1, 2, 3, 4, 5, 6);
+
+	QUnit.equal(cInstance.intersect([ 1, 2, 3 ]).join(), "1,2,3", "can take the set intersection of two arrays");
+
+	QUnit.equal(cInstance.intersect(cArray(1, 2, 3)).join(), "1,2,3", "can take the set intersection of two classify arrays");
+
+	QUnit.equal(cInstance.intersect(cArray(1, 2, 3), [ 4 ]).join(), "1,2,3,4", "can take the set intersection of multiple arrays");
+
+	QUnit.equal(cInstance.intersect(cArray(1, 2, 3), [ 4 ], 5).join(), "1,2,3,4,5", "can take the set intersection of multiple arrays and mixed args");
 });
 
 QUnit.test("asyncEach", function() {
-	QUnit.expect(0);
+	QUnit.expect(12);
 	var cArray = Classify("/Array");
-	var cInstance = cArray(1, 2, 3, 4, 5, 6);
+
+	// basic iteration
+	QUnit.stop();
+	var index = 0;
+	cArray(1, 2, 3, 4, 5, 6).asyncEach(function(v, i, array) {
+		QUnit.start();
+		QUnit.equal(v, i + 1, "asyncEach iterator provide value and index");
+		index++;
+		QUnit.stop();
+	}, function(array) {
+		QUnit.start();
+		QUnit.equal(index, 6, "asyncEach calls completion callback when all items are processed");
+	});
+
+	// context passing
+	QUnit.stop();
+	cArray(1).asyncEach(function(v, i, array) {
+		QUnit.start();
+		QUnit.equal(this.multiplier, 2, "context passed to asyncEach iterator");
+		QUnit.stop();
+	}, function(array) {
+		QUnit.start();
+		QUnit.equal(this.multiplier, 2, "context passed to asyncEach complete callback");
+	}, {
+		multiplier : 2
+	});
+
+	// stoping iteration
+	var stop_i = 0;
+	QUnit.stop();
+	cArray(1, 2, 3, 4, 5, 6).asyncEach(function(v, i, array) {
+		stop_i++;
+		return false;
+	}, function() {
+		QUnit.start();
+		QUnit.equal(stop_i, 1, "returning false stops iteration steps in asyncEach");
+	});
+
+	// long running iterations doesn't lock up process
+	var long_i = 0;
+	QUnit.stop();
+	cArray(1, 2, 3, 4, 5, 6).asyncEach(function(v, i, array) {
+		var start = +new Date(), a = 0;
+		while (+new Date() - start < 51) {
+			a++;
+		}
+		long_i++;
+	}, function() {
+		QUnit.start();
+		QUnit.equal(long_i, 6, "long running operations doesn't stop process in asyncEach");
+	});
+
+	// handle empty arrays
+	var empty_i = 0;
+	QUnit.stop();
+	cArray().asyncEach(function(v, i, array) {
+		empty_i++;
+	}, function(array) {
+		QUnit.start();
+		QUnit.equal(empty_i, 0, "Empty array not iterated over in asyncEach");
+	});
 });
 
 QUnit.test("every", function() {
-	QUnit.expect(0);
+	QUnit.expect(10);
 	var cArray = Classify("/Array");
-	var cInstance = cArray(1, 2, 3, 4, 5, 6);
+
+	var isEvery = cArray(1, 2, 3, 4, 5, 6).every(function(v, i, array) {
+		QUnit.equal(v, i + 1, "every iterator provide value and index");
+		return true;
+	});
+	QUnit.equal(isEvery, true, "every item in array is valid");
+
+	var index = 1;
+	isEvery = cArray(1, 2, 3, 4, 5, 6).every(function(v, i, array) {
+		index++;
+		return v < 2;
+	});
+	QUnit.equal(isEvery, false, "every item did not satisfy condition");
+	QUnit.equal(index, 3, "every iterator stopped after condition is false");
+
+	isEvery = cArray(1, 2, 3, 4, 5, 6).every(function(v, i, array) {
+		return v < this.limit;
+	}, {
+		limit : 2
+	});
+	QUnit.equal(isEvery, false, "context object property accessed");
 });
 
 QUnit.test("filter", function() {
-	QUnit.expect(0);
+	QUnit.expect(2);
 	var cArray = Classify("/Array");
-	var cInstance = cArray(1, 2, 3, 4, 5, 6);
+
+	var evens = cArray(1, 2, 3, 4, 5, 6).filter(function(v) {
+		return v % 2 == 0;
+	});
+	QUnit.equal(evens.join(), "2,4,6", "filtered each even number");
+
+	evens = cArray(1, 2, 3, 4, 5, 6).filter(function(v) {
+		return v % this.mod == 0;
+	}, {
+		mod : 2
+	});
+	QUnit.equal(evens.join(), "2,4,6", "context object property accessed");
 });
 
 QUnit.test("forEach", function() {
@@ -301,9 +441,29 @@ QUnit.test("map", function() {
 });
 
 QUnit.test("some", function() {
-	QUnit.expect(0);
+	QUnit.expect(10);
 	var cArray = Classify("/Array");
-	var cInstance = cArray(1, 2, 3, 4, 5, 6);
+
+	var isSome = cArray(1, 2, 3, 4, 5, 6).some(function(v, i, array) {
+		QUnit.equal(v, i + 1, "some iterator provide value and index");
+		return false;
+	});
+	QUnit.equal(isSome, false, "some item(s) in array is valid");
+
+	var index = 1;
+	isSome = cArray(1, 2, 3, 4, 5, 6).some(function(v, i, array) {
+		index++;
+		return v > 2;
+	});
+	QUnit.equal(isSome, true, "some item(s) satisfied condition");
+	QUnit.equal(index, 4, "some iterator stopped after condition is true");
+
+	isSome = cArray(1, 2, 3, 4, 5, 6).some(function(v, i, array) {
+		return v > this.limit;
+	}, {
+		limit : 2
+	});
+	QUnit.equal(isSome, true, "context object property accessed");
 });
 
 QUnit.test("reduce", function() {
@@ -350,14 +510,133 @@ QUnit.test("reduceRight", function() {
 	}
 });
 
-QUnit.test("threadEach", function() {
-	QUnit.expect(0);
+QUnit.test("serialEach", function() {
+	QUnit.expect(10);
 	var cArray = Classify("/Array");
-	var cInstance = cArray(1, 2, 3, 4, 5, 6);
+
+	// basic iteration
+	var index = 0;
+	cArray(1, 2, 3, 4, 5, 6).serialEach(function(next, v, i, array) {
+		QUnit.equal(v, i + 1, "serialEach iterator provide value and index");
+		index++;
+		next();
+	}, function(array) {
+		QUnit.equal(index, 6, "serialEach calls completion callback when all items are processed");
+	});
+
+	// context passing
+	cArray(1).serialEach(function(next, v, i, array) {
+		QUnit.equal(this.multiplier, 2, "context passed to serialEach iterator");
+		next();
+	}, function(array) {
+		QUnit.equal(this.multiplier, 2, "context passed to serialEach complete callback");
+	}, {
+		multiplier : 2
+	});
+
+	// handle empty arrays
+	var empty_i = 0;
+	cArray().serialEach(function(next, v, i, array) {
+		empty_i++;
+		next();
+	}, function(array) {
+		QUnit.equal(empty_i, 0, "Empty array not iterated over in serialEach");
+	});
+});
+
+QUnit.test("threadEach", function() {
+	QUnit.expect(12);
+	var cArray = Classify("/Array");
+
+	// basic iteration
+	QUnit.stop();
+	var index = 0;
+	cArray(1, 2, 3, 4, 5, 6).threadEach(function(next, v, i, array) {
+		QUnit.start();
+		QUnit.equal(v, i + 1, "threadEach iterator provide value and index");
+		index++;
+		QUnit.stop();
+		next();
+	}, function(array) {
+		QUnit.start();
+		QUnit.equal(index, 6, "threadEach calls completion callback when all items are processed");
+	});
+
+	// context passing
+	QUnit.stop();
+	cArray(1).threadEach(function(next, v, i, array) {
+		QUnit.start();
+		QUnit.equal(this.multiplier, 2, "context passed to threadEach iterator");
+		QUnit.stop();
+		next();
+	}, function(array) {
+		QUnit.start();
+		QUnit.equal(this.multiplier, 2, "context passed to threadEach complete callback");
+	}, {
+		multiplier : 2
+	});
+
+	// stoping iteration
+	var stop_i = 0;
+	QUnit.stop();
+	cArray(1, 2, 3, 4, 5, 6).threadEach(function(next, v, i, array) {
+		stop_i++;
+		return false;
+	}, function() {
+		QUnit.start();
+		QUnit.equal(stop_i, 1, "returning false stops iteration steps in threadEach");
+	});
+
+	// long running iterations doesn't lock up process
+	var long_i = 0;
+	QUnit.stop();
+	cArray(1, 2, 3, 4, 5, 6).threadEach(function(next, v, i, array) {
+		var start = +new Date(), a = 0;
+		while (+new Date() - start < 51) {
+			a++;
+		}
+		long_i++;
+		next();
+	}, function() {
+		QUnit.start();
+		QUnit.equal(long_i, 6, "long running operations doesn't stop process in threadEach");
+	});
+
+	// handle empty arrays
+	var empty_i = 0;
+	QUnit.stop();
+	cArray().threadEach(function(next, v, i, array) {
+		empty_i++;
+	}, function(array) {
+		QUnit.start();
+		QUnit.equal(empty_i, 0, "Empty array not iterated over in threadEach");
+	});
 });
 
 QUnit.test("unique", function() {
-	QUnit.expect(0);
+	QUnit.expect(4);
 	var cArray = Classify("/Array");
-	var cInstance = cArray(1, 2, 3, 4, 5, 6);
+
+	QUnit.equal(cArray(1, 2, 1, 3, 1, 4).unique().join(), "1,2,3,4", "can find the unique values of an unsorted array");
+
+	QUnit.equal(cArray(1, 1, 1, 2, 2, 3).unique(true).join(), "1,2,3", "can find the unique values of a sorted array faster");
+
+	var list = cArray({
+		name : "bob"
+	}, {
+		name : "mike"
+	}, {
+		name : "joe"
+	}, {
+		name : "mike"
+	});
+	var iterator = function(value) {
+		return value.name;
+	};
+	QUnit.equal(list.unique(false, iterator).map(iterator).join(), "bob,mike,joe", "can find the unique values of an array using a custom iterator");
+
+	var iterator = function(value) {
+		return value + 1;
+	};
+	QUnit.equal(cArray(1, 2, 2, 3, 4, 4).unique(true, iterator).join(), "1,2,3,4", "iterator works with sorted array");
 });

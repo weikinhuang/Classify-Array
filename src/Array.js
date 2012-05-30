@@ -1,6 +1,36 @@
 // shortcut reference to the array prototype
 var arrayProto = Array.prototype;
 
+var indexOf = arrayProto.indexOf ? function(array, value) {
+	return arrayProto.indexOf.call(array, value);
+} : function(array, value) {
+	var i = 0, len = array.length;
+	while (i < len) {
+		if (array[i] === value) {
+			return i;
+		}
+		i++;
+	}
+	return -1;
+};
+
+var isArray = function(o) {
+	return Object.prototype.toString.call(o) === "[object Array]";
+};
+
+var flatten = function(args) {
+	var i = 0, len = args.length, result = [];
+	while (i < len) {
+		if (args && args[i].length) {
+			arrayProto.push.apply(result, arrayProto.slice.call(args[i], 0));
+		} else {
+			result.push(args[i]);
+		}
+		i++;
+	}
+	return result;
+};
+
 var proto = {
 	toArray : function() {
 		return arrayProto.slice.call(this, 0);
@@ -44,8 +74,20 @@ var proto = {
 		}
 		return this;
 	},
-	range : function(start, end, step) {
-
+	range : function(start, stop, step) {
+		if (arguments.length <= 1) {
+			stop = start || 0;
+			start = 0;
+		}
+		step = step || 1;
+		var len = Math.max(Math.ceil((stop - start) / step), 0), idx = 0;
+		// empty this array first
+		this.clear();
+		while (idx++ < len) {
+			this.push(start);
+			start += step;
+		}
+		return this;
 	},
 	indexOf : arrayProto.indexOf || function(value) {
 		var i = 0, len = this.length;
@@ -89,10 +131,16 @@ var proto = {
 		return this[Math.round(Math.random() * (this.length - 1))];
 	},
 	diff : function(array) {
-
+		var items = flatten(arguments);
+		return this.unique().filter(function(v) {
+			return indexOf(items, v) === -1;
+		});
 	},
 	intersect : function(array) {
-
+		var items = flatten(arguments);
+		return this.unique().filter(function(v) {
+			return indexOf(items, v) > -1;
+		});
 	},
 	asyncEach : function(iterator, callback, context, delay) {
 		// clone this array
@@ -114,8 +162,13 @@ var proto = {
 				callback && callback.call(context || null, array);
 			}
 		};
-		// process them slowly
-		timer = setTimeout(processor, delay || 25);
+		// no items to process, run the callback
+		if (array.length === 0) {
+			callback && callback.call(context || null, array);
+		} else {
+			// process them slowly
+			timer = setTimeout(processor, delay || 25);
+		}
 		return this;
 	},
 	every : arrayProto.every || function(iterator, context) {
@@ -143,9 +196,7 @@ var proto = {
 				i++;
 			}
 		}
-		var obj = new this.constructor();
-		obj.push.apply(obj, items);
-		return obj;
+		return this.constructor.applicate(items);
 	},
 	forEach : arrayProto.forEach || function(iterator, context) {
 		var i = 0, len = this.length;
@@ -213,18 +264,50 @@ var proto = {
 
 		return accumulator;
 	},
+	serialEach : function(iterator, callback, context) {
+		var array = this, temp = this.toArray(), i = 0, next = function() {
+			if (temp.length === 0) {
+				// we're done, run the callback
+				callback && callback.call(context || null, array);
+				return;
+			}
+			iterator.call(context || null, next, temp.shift(), i++, array);
+		};
+		// start the first iteration
+		next();
+		return this;
+	},
 	threadEach : function(iterator, callback, context) {
-		var array = this, len = this.length, complete = function() {
-			if (--len === 0) {
+		var array = this, len = this.length, completeCalled = false, complete = function() {
+			if (--len === 0 && !completeCalled) {
+				completeCalled = true;
 				callback && callback.call(context || null, array);
 			}
 		};
+		// if there are no items to process then just call the callback
+		if (array.length === 0) {
+			callback && callback.call(context || null, array);
+			return this;
+		}
 		return this.asyncEach(function(v, i, array) {
-			iterator.call(context || null, v, i, complete, array);
+			if (iterator.call(context || null, complete, v, i, array) === false) {
+				// if we bail out early, then
+				completeCalled = true;
+				callback && callback.call(context || null, array);
+				return false;
+			}
 		}, null, context, 1);
 	},
-	unique : function() {
-
+	unique : function(isSorted, iterator) {
+		var array = this, temp = iterator ? array.map(iterator) : array, result = [];
+		temp.reduce(function(accumulator, v, i) {
+			if (isSorted ? (accumulator[accumulator.length - 1] !== v || !accumulator.length) : indexOf(accumulator, v) === -1) {
+				accumulator.push(v);
+				result.push(array[i]);
+			}
+			return accumulator;
+		}, []);
+		return this.constructor.applicate(result);
 	}
 };
 
