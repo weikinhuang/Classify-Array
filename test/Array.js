@@ -124,15 +124,38 @@ QUnit.test("reverse", function() {
 });
 
 QUnit.test("sort", function() {
-	QUnit.expect(0);
+	QUnit.expect(4);
 	var cArray = Classify("/Array");
-	var cInstance = cArray(1, 2, 3, 4, 5, 6);
+	var cInstance = cArray(5, 4, 3, 2, 1);
+	cInstance.sort();
+
+	QUnit.equal(cInstance[0], 1, "Sort array sorts elements in ascending order");
+	QUnit.equal(cInstance[4], 5, "Sort array sorts elements in ascending order");
+
+	var cInstancefn = cArray(1, 2, 3, 4, 5);
+	cInstancefn.sort(function(l, r) {
+		if(l === r) {
+			return 0;
+		}
+		return l > r ? -1 : 1;
+	});
+	QUnit.equal(cInstancefn[0], 5, "Sorted with sort callback array sorts elements in proper order");
+	QUnit.equal(cInstancefn[4], 1, "Sorted with sort callback array sorts elements in proper order");
 });
 
 QUnit.test("concat", function() {
-	QUnit.expect(0);
+	QUnit.expect(5);
 	var cArray = Classify("/Array");
-	var cInstance = cArray(1, 2, 3, 4, 5, 6);
+	var cInstance = cArray(1);
+
+	var cConcat = cInstance.concat(2);
+	QUnit.equal(cConcat.length, 2, "concat method merges array + args and returns a new array with proper length");
+	QUnit.equal(cConcat[1], 2, "concat method merges array values");
+
+	var cConcatm = cInstance.concat(2, 3);
+	QUnit.equal(cConcatm.length, 3, "concat method turns array + multiple args into new array");
+	QUnit.equal(cConcatm[1], 2, "concat method merges array values arg1");
+	QUnit.equal(cConcatm[2], 3, "concat method merges array values arg2");
 });
 
 QUnit.test("join", function() {
@@ -164,15 +187,23 @@ QUnit.test("slice", function() {
 });
 
 QUnit.test("shuffle", function() {
-	QUnit.expect(0);
+	QUnit.expect(1);
 	var cArray = Classify("/Array");
-	var cInstance = cArray(1, 2, 3, 4, 5, 6);
+	var cInstance = cArray(1, 2, 3, 4);
+
+	cInstance.shuffle();
+	QUnit.ok(cInstance[0] !== 1 || cInstance[1] !== 2 || cInstance[2] !== 3 || cInstance[3] !== 4, "Shuffle method changes order of array");
 });
 
 QUnit.test("copy", function() {
-	QUnit.expect(0);
+	QUnit.expect(3);
 	var cArray = Classify("/Array");
 	var cInstance = cArray(1, 2, 3, 4, 5, 6);
+	var cCopy = cInstance.copy();
+
+	QUnit.notEqual(cCopy, cInstance, "copy creates another instance");
+	QUnit.equal(cCopy.length, cInstance.length, "copied array has same length");
+	QUnit.equal(cCopy[0], cInstance[0], "copied elements");
 });
 
 QUnit.test("fill", function() {
@@ -260,9 +291,22 @@ QUnit.test("size", function() {
 });
 
 QUnit.test("rand", function() {
-	QUnit.expect(0);
+	QUnit.expect(1);
 	var cArray = Classify("/Array");
 	var cInstance = cArray(1, 2, 3, 4, 5, 6);
+
+	function isInArray(array, value) {
+		var i = 0, len = array.length;
+		while (i < len) {
+			if (array[i] === value) {
+				return true;
+			}
+			i++;
+		}
+		return false;
+	}
+
+	QUnit.ok(isInArray([ 1, 2, 3, 4, 5, 6 ], cInstance.rand()), "Randomly selected an element in the array");
 });
 
 QUnit.test("diff", function() {

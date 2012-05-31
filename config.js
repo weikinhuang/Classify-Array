@@ -1,7 +1,7 @@
 module.exports = {
-	name : "",
+	name : "classify-array",
 	pkg : "package.json",
-	version : "0.0.0",
+	version : "0.1.0",
 	wrap : {
 		copy : [ "copyright.js" ],
 		intro : [ "intro.js" ],
@@ -48,5 +48,5 @@ module.exports = {
 			inline_script : false
 		}
 	},
-	build : "clean concat lint unit min size"
+	build : "clean lint unit size concat min"
 };

@@ -1,3 +1,14 @@
+/*!
+ * Classify JavaScript Array Extension Class v0.1.0
+ * http://www.closedinterval.com/
+ *
+ * Copyright 2012, Wei Kin Huang
+ * Classify-Array is freely distributable under the MIT license.
+ *
+ * Date: Thu, 31 May 2012 18:46:17 GMT
+ */
+(function( root, undefined ) {
+	"use strict";
 // shortcut reference to the array prototype
 var arrayProto = Array.prototype;
 
@@ -318,3 +329,6 @@ ArrayObject.addUnwrappedProperty({
 		return this.getNewObject(result);
 	}
 });
+
+// Establish the root object, "window" in the browser, or "global" on the server.
+})(this);
