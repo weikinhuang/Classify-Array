@@ -1,7 +1,7 @@
 // shortcut reference to the array prototype
-var arrayProto = Array.prototype;
+var arrayProto = Array.prototype, map, filter, indexOf, flatten, ArrayObject;
 
-var indexOf = arrayProto.indexOf ? function(array, value) {
+indexOf = arrayProto.indexOf ? function(array, value) {
 	return arrayProto.indexOf.call(array, value);
 } : function(array, value) {
 	var i = 0, len = array.length;
@@ -14,7 +14,7 @@ var indexOf = arrayProto.indexOf ? function(array, value) {
 	return -1;
 };
 
-var flatten = function(args) {
+flatten = function(args) {
 	var i = 0, len = args.length, result = [];
 	while (i < len) {
 		if (args && args[i].length) {
@@ -27,7 +27,39 @@ var flatten = function(args) {
 	return result;
 };
 
-var ArrayObject = Classify.getGlobalNamespace().create("Array", {
+if (arrayProto.map) {
+	map = function(iterator, context) {
+		return this.getNewObject(arrayProto.map.apply(this, arguments));
+	};
+} else {
+	map = function(iterator, context) {
+		var items = [], i = 0, len = this.length;
+		while (i < len) {
+			items[items.length] = iterator.call(context || null, this[i], i, this);
+			i++;
+		}
+		return this.getNewObject(items);
+	};
+}
+
+if (arrayProto.filter) {
+	filter = function(iterator, context) {
+		return this.getNewObject(arrayProto.filter.apply(this, arguments));
+	};
+} else {
+	filter = function(iterator, context) {
+		var items = [], i = 0, len = this.length;
+		while (i < len) {
+			if (iterator.call(context || null, this[i], i, this)) {
+				items[items.length] = this[i];
+			}
+			i++;
+		}
+		return this.getNewObject(items);
+	};
+}
+
+ArrayObject = Classify.getGlobalNamespace().create("Array", {
 	length : 0,
 	init : function() {
 		this.push.apply(this, arguments);
@@ -49,6 +81,8 @@ ArrayObject.addUnwrappedProperty({
 	shift : arrayProto.shift,
 	sort : arrayProto.sort,
 	join : arrayProto.join,
+	filter : filter,
+	map : map,
 	splice : function() {
 		return this.getNewObject(arrayProto.splice.apply(this, arguments));
 	},
@@ -189,44 +223,12 @@ ArrayObject.addUnwrappedProperty({
 		}
 		return true;
 	},
-	filter : function(iterator, context) {
-		var items, i, len;
-		if (arrayProto.filter) {
-			items = arrayProto.filter.apply(this, arguments);
-		} else {
-			items = [];
-			i = 0;
-			len = this.length;
-			while (i < len) {
-				if (iterator.call(context || null, this[i], i, this)) {
-					items[items.length] = this[i];
-				}
-				i++;
-			}
-		}
-		return this.getNewObject(items);
-	},
 	forEach : arrayProto.forEach || function(iterator, context) {
 		var i = 0, len = this.length;
 		while (i < len) {
 			iterator.call(context || null, this[i], i, this);
 			i++;
 		}
-	},
-	map : function(iterator, context) {
-		var items, i, len;
-		if (arrayProto.map) {
-			items = arrayProto.map.apply(this, arguments);
-		} else {
-			items = [];
-			i = 0;
-			len = this.length;
-			while (i < len) {
-				items[items.length] = iterator.call(context || null, this[i], i, this);
-				i++;
-			}
-		}
-		return this.getNewObject(items);
 	},
 	some : arrayProto.some || function(iterator, context) {
 		var i = 0, len = this.length;
