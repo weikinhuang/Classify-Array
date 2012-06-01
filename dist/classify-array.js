@@ -5,12 +5,12 @@
  * Copyright 2012, Wei Kin Huang
  * Classify-Array is freely distributable under the MIT license.
  *
- * Date: Fri, 01 Jun 2012 20:04:50 GMT
+ * Date: Fri, 01 Jun 2012 20:17:10 GMT
  */
 (function( root, undefined ) {
 	"use strict";
 
-	var bootstrap = function() {
+	var bootstrap = function(Classify) {
 // shortcut reference to the array prototype
 var arrayProto = Array.prototype, map, filter, indexOf, flatten, ArrayObject;
 
@@ -336,7 +336,7 @@ ArrayObject.addUnwrappedProperty({
 
 	};
 
-	if (typeof Classify !== "undefined" && typeof module !== "undefined" && module.exports) {
+	if (typeof Classify === "undefined" && typeof module !== "undefined" && module.exports) {
 		module.exports = bootstrap;
 		return;
 	}

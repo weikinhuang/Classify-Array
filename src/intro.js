@@ -1,4 +1,4 @@
 (function( root, undefined ) {
 	"use strict";
 
-	var bootstrap = function() {
+	var bootstrap = function(Classify) {

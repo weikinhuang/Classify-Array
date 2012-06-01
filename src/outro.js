@@ -1,7 +1,7 @@
 
 	};
 
-	if (typeof Classify !== "undefined" && typeof module !== "undefined" && module.exports) {
+	if (typeof Classify === "undefined" && typeof module !== "undefined" && module.exports) {
 		module.exports = bootstrap;
 		return;
 	}
