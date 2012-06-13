@@ -15,18 +15,32 @@
 	// original done hook
 	original_done = QUnit.done;
 
+	var socket = io.connect();
+	socket.emit("browserConnect", {
+		ua : navigator.userAgent
+	});
+
+	// pass data to the process
+	function send(data) {
+		data.ua = navigator.userAgent;
+		socket.emit(data.event, data.data);
+		if (data.event === "done") {
+			socket.disconnect();
+		}
+	}
+
 	QUnit.log = function(data) {
-		if (data.message === '[dataect Object], undefined:undefined') {
+		if (data.message === "[dataect Object], undefined:undefined") {
 			return;
 		}
 		data.module = currentmodule;
 		data.test = currenttest;
 		data.actual = QUnit.jsDump.parse(data.actual);
 		data.expected = QUnit.jsDump.parse(data.expected);
-		alert(JSON.stringify({
+		send({
 			event : "assertionDone",
 			data : data
-		}));
+		});
 		original_log.apply(this, arguments);
 	};
 
@@ -34,45 +48,44 @@
 		currentmodule = data.module || currentmodule;
 		currenttest = data.name || currenttest;
 
-		alert(JSON.stringify({
+		send({
 			event : "testStart",
 			data : data
-		}));
+		});
 		original_testStart.apply(this, arguments);
 	};
 
 	QUnit.testDone = function(data) {
 		data.module = data.module || currentmodule;
 
-		alert(JSON.stringify({
+		send({
 			event : "testDone",
 			data : data
-		}));
+		});
 		original_testDone.apply(this, arguments);
 	};
 
 	QUnit.moduleStart = function(data) {
-		alert(JSON.stringify({
+		send({
 			event : "moduleStart",
 			data : data
-		}));
+		});
 		original_moduleStart.apply(this, arguments);
 	};
 
 	QUnit.moduleDone = function(data) {
-		alert(JSON.stringify({
+		send({
 			event : "moduleDone",
 			data : data
-		}));
+		});
 		original_moduleDone.apply(this, arguments);
 	};
 
 	QUnit.done = function(data) {
-		alert(JSON.stringify({
+		send({
 			event : "done",
-			data : data,
-			coverage : window._$jscoverage
-		}));
+			data : data
+		});
 		original_done.apply(this, arguments);
 	};
 })();
