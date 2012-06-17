@@ -114,18 +114,11 @@ var Build = Classify.create({
 		this.wrap.copy.push.apply(this.wrap.copy, Array.isArray(arguments[0]) ? arguments[0] : arguments);
 		return this;
 	},
-	addIntro : function() {
-		if (!this.wrap.intro) {
-			this.wrap.intro = [];
+	addSourceWrap : function() {
+		if (!this.wrap.wrap) {
+			this.wrap.wrap = [];
 		}
-		this.wrap.intro.push.apply(this.wrap.intro, Array.isArray(arguments[0]) ? arguments[0] : arguments);
-		return this;
-	},
-	addOutro : function() {
-		if (!this.wrap.outro) {
-			this.wrap.outro = [];
-		}
-		this.wrap.outro.push.apply(this.wrap.outro, Array.isArray(arguments[0]) ? arguments[0] : arguments);
+		this.wrap.wrap.push.apply(this.wrap.wrap, Array.isArray(arguments[0]) ? arguments[0] : arguments);
 		return this;
 	},
 	addReplaceToken : function(name, value) {
@@ -173,7 +166,7 @@ var Build = Classify.create({
 			temp = this.taskOptions[this.currentStep];
 			name.split(".").some(function(part, i) {
 				// skip the first step if it's name is the same as the step
-				if (i === 0 && part === self.currentStep) {
+				if (!part || i === 0 && part === self.currentStep) {
 					return;
 				}
 				if (temp == null || !temp.hasOwnProperty(part)) {
@@ -226,6 +219,12 @@ var Build = Classify.create({
 		if (temp != null) {
 			return temp;
 		}
+
+		// lastly try to pull from a different task option
+		if (this.taskOptions[name]) {
+			return this.taskOptions[name];
+		}
+
 		return null;
 	},
 
@@ -234,18 +233,14 @@ var Build = Classify.create({
 			callback(this.sourceCache.full);
 			return;
 		}
-		var self = this, intro = "", outro = "", src = "", data;
-		(this.wrap && this.wrap.intro || []).forEach(function(file) {
-			intro += fs.readFileSync(self.dir.src + "/" + file, "utf8");
-		});
-		(this.wrap && this.wrap.outro || []).forEach(function(file) {
-			outro += fs.readFileSync(self.dir.src + "/" + file, "utf8");
-		});
+		var self = this, data = "";
 		this.src.forEach(function(file) {
-			src += fs.readFileSync(self.dir.src + "/" + file, "utf8");
+			data += fs.readFileSync(self.dir.src + "/" + file, "utf8");
+		});
+		(this.wrap && this.wrap.wrap || []).forEach(function(file) {
+			data = fs.readFileSync(self.dir.src + "/" + file, "utf8").replace(/"@SOURCE\b";/g, data);
 		});
 
-		data = intro + src + outro;
 		data = data.replace(/@VERSION\b/g, this.version);
 		data.replace(/@DATE\b/g, (new Date()).toUTCString());
 
