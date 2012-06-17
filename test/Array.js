@@ -220,7 +220,6 @@ QUnit.test("fill", function() {
 QUnit.test("range", function() {
 	QUnit.expect(8);
 	var cArray = Classify("/Array");
-	var cInstance = cArray(1, 2, 3, 4, 5, 6);
 
 	QUnit.equal(cArray().range(0).join(""), "", "range with 0 as a first argument generates an empty array");
 	QUnit.equal(cArray().range(4).join(" "), "0 1 2 3", "range with a single positive argument generates an array of elements 0,1,2,...,n-1");
@@ -233,21 +232,28 @@ QUnit.test("range", function() {
 });
 
 QUnit.test("indexOf", function() {
-	QUnit.expect(2);
+	QUnit.expect(6);
 	var cArray = Classify("/Array");
 	var cInstance = cArray(1, 2, 3, 3, 2, 1);
 
 	QUnit.equal(cInstance.indexOf(2), 1, "retrieve the first index of searched value");
 	QUnit.equal(cInstance.indexOf(4), -1, "4 is not in the list");
+	QUnit.equal(cInstance.indexOf(2, 3), 4, "retrieve index with a start position");
+	QUnit.equal(cInstance.indexOf(2, NaN), 1, "retrieve index with a NaN start position");
+	QUnit.equal(cInstance.indexOf(2, 50), -1, "retrieve index with a index larger then the length");
+	QUnit.equal(cArray().indexOf(4), -1, "empty arrays don't do a search");
 });
 
 QUnit.test("lastIndexOf", function() {
-	QUnit.expect(2);
+	QUnit.expect(5);
 	var cArray = Classify("/Array");
 	var cInstance = cArray(1, 2, 3, 3, 2, 1);
 
 	QUnit.equal(cInstance.lastIndexOf(2), 4, "retrieve the last index of searched value");
 	QUnit.equal(cInstance.lastIndexOf(4), -1, "4 is not in the list");
+	QUnit.equal(cInstance.lastIndexOf(2, 3), 1, "retrieve index with a start position");
+	QUnit.equal(cInstance.lastIndexOf(2, NaN), -1, "retrieve index with a NaN start position");
+	QUnit.equal(cArray().lastIndexOf(4), -1, "empty arrays don't do a search");
 });
 
 QUnit.test("include", function() {

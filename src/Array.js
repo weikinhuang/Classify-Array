@@ -131,22 +131,46 @@ ArrayObject.addUnwrappedProperty({
 		}
 		return this;
 	},
-	indexOf : arrayProto.indexOf || function(value) {
-		var i = 0, len = this.length;
-		while (i < len) {
+	indexOf : arrayProto.indexOf || function(value, from) {
+		var i = 0, len = this.length >>> 0;
+		if (len === 0) {
+			return -1;
+		}
+		if (arguments.length > 1) {
+			i = Number(from);
+			if (i !== i) {
+				i = 0;
+			} else if (i !== 0 && i !== Infinity && i !== -Infinity) {
+				i = (i > 0 || -1) * Math.floor(Math.abs(i));
+			}
+		}
+		if (i >= len) {
+			return -1;
+		}
+		for (; i < len; i++) {
 			if (this[i] === value) {
 				return i;
 			}
-			i++;
 		}
 		return -1;
 	},
-	lastIndexOf : arrayProto.lastIndexOf || function(value) {
-		var i = this.length;
-		while (i--) {
-			if (this[i] === value) {
-				return i;
+	lastIndexOf : arrayProto.lastIndexOf || function(value, from) {
+		var len = this.length >>> 0, n = len, k;
+		if (len === 0) {
+			return -1;
+		}
+		if (arguments.length > 1) {
+			n = Number(from);
+			if (n !== n) {
+				n = 0;
+			} else if (n !== 0 && n !== Infinity && n !== -Infinity) {
+				n = (n > 0 || -1) * Math.floor(Math.abs(n));
 			}
+		}
+		k = n >= 0 ? Math.min(n, len - 1) : len - Math.abs(n);
+		for (; k >= 0; k--) {
+			if (this[k] === value)
+				return k;
 		}
 		return -1;
 	},
