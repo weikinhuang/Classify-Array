@@ -282,6 +282,34 @@ QUnit.test("include", function() {
 	QUnit.equal(cInstance.include(4), false, "false if item is not in array");
 });
 
+QUnit.test("remove", function() {
+	QUnit.expect(4);
+	var cArray = Classify("/Array");
+	var cInstance = cArray(1, 2, 3, 2, 1, 4);
+
+	cInstance.remove(4);
+	QUnit.equal(cInstance.include(4), false, "Removed item is not in the array");
+
+	cInstance.remove(1);
+	QUnit.equal(cInstance.include(1), true, "remove only removes a single element");
+	QUnit.equal(cInstance.indexOf(1), 3, "remove only removes first instance of element");
+
+	cInstance.remove(2, 3);
+	QUnit.equal(cInstance.include(3), false, "remove can take multiple arguments");
+});
+
+QUnit.test("removeAll", function() {
+	QUnit.expect(2);
+	var cArray = Classify("/Array");
+	var cInstance = cArray(1, 2, 3, 3, 2, 1);
+
+	cInstance.removeAll(1);
+	QUnit.equal(cInstance.include(1), false, "removeAll removes all instances of an element");
+
+	cInstance.removeAll(2, 3);
+	QUnit.equal(cInstance.include(3), false, "removeAll removes can take multiple arguments");
+});
+
 QUnit.test("clear", function() {
 	QUnit.expect(1);
 	var cArray = Classify("/Array");
@@ -333,10 +361,12 @@ QUnit.test("rand", function() {
 });
 
 QUnit.test("diff", function() {
-	QUnit.expect(4);
+	QUnit.expect(5);
 	var cArray = Classify("/Array");
 
 	var cInstance = cArray(1, 2, 3, 4, 5, 6);
+
+	QUnit.equal(cInstance.diff(1).join(), "2,3,4,5,6", "can take the can diff array from scalar value");
 
 	QUnit.equal(cInstance.diff([ 1, 2 ]).join(), "3,4,5,6", "can take the set diff of two arrays");
 

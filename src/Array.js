@@ -197,7 +197,28 @@ ArrayObject.addUnwrappedProperty({
 		return -1;
 	},
 	include : function(value) {
-		return this.indexOf(value) != -1;
+		return this.indexOf(value) !== -1;
+	},
+	remove : function() {
+		var items = arrayProto.slice.call(arguments, 0), i = 0, l = items.length, index;
+		for (; i < l; i++) {
+			index = this.indexOf(items[i]);
+			if (index > -1) {
+				this.splice(index, 1);
+			}
+		}
+		return this;
+	},
+	removeAll : function() {
+		var items = arrayProto.slice.call(arguments, 0), i = 0, l = items.length, index;
+		for (; i < l; i++) {
+			do {
+				index = this.indexOf(items[i]);
+				if (index > -1) {
+					this.splice(index, 1);
+				}
+			} while (index >= 0);
+		}
 	},
 	clear : function() {
 		this.length = 0;
