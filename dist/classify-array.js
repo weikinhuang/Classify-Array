@@ -5,14 +5,14 @@
  * Copyright 2012, Wei Kin Huang
  * Classify-Array is freely distributable under the MIT license.
  *
- * Date: Sun, 17 Jun 2012 22:21:01 GMT
+ * Date: Fri, 29 Jun 2012 00:48:31 GMT
  */
 (function(root, undefined) {
 	"use strict";
 
 	var bootstrap = function(Classify) {
 		// shortcut reference to the array prototype
-var arrayProto = Array.prototype, map, filter, indexOf, flatten, ArrayObject;
+var arrayProto = Array.prototype, toString = Object.prototype.toString, hasOwn = Object.prototype.hasOwnProperty, map, filter, indexOf, flatten, ArrayObject;
 
 indexOf = arrayProto.indexOf ? function(array, value) {
 	return arrayProto.indexOf.call(array, value);
@@ -72,12 +72,33 @@ if (arrayProto.filter) {
 	};
 }
 
-ArrayObject = Classify.getGlobalNamespace().create("Array", {
+ArrayObject = Classify.getGlobalNamespace().create("Array", Array, {
 	length : 0,
 	init : function() {
 		this.push.apply(this, arguments);
 	}
 });
+
+ArrayObject.isArray = Array.isArray || function isArray(obj) {
+	return toString.call(obj) == "[object Array]";
+};
+
+ArrayObject.from = function(iterable) {
+	var object = Object, obj = object(iterable), arrayobj = new ArrayObject(), array = [], i = 0, length = obj.length >>> 0;
+	for (; i < length; i++) {
+		if (hasOwn.call(obj, i)) {
+			array[i] = obj[i];
+		}
+	}
+	arrayobj.push.apply(arrayobj, array);
+	return arrayobj;
+};
+
+ArrayObject.of = function() {
+	var array = new ArrayObject();
+	array.push.apply(array, arguments);
+	return array;
+};
 
 ArrayObject.addUnwrappedProperty({
 	toArray : function() {
@@ -182,8 +203,9 @@ ArrayObject.addUnwrappedProperty({
 		}
 		k = n >= 0 ? Math.min(n, len - 1) : len - Math.abs(n);
 		for (; k >= 0; k--) {
-			if (this[k] === value)
+			if (this[k] === value) {
 				return k;
+			}
 		}
 		return -1;
 	},
@@ -236,17 +258,17 @@ ArrayObject.addUnwrappedProperty({
 			// we're not finished yet, let's wait a little
 			if (!stop && temp.length > 0) {
 				timer = setTimeout(processor, delay || 25);
-			} else {
+			} else if (callback) {
 				// we're done, run the callback
-				callback && callback.call(context || null, array);
+				callback.call(context || null, array);
 			}
 		};
 		// no items to process, run the callback
-		if (array.length === 0) {
-			callback && callback.call(context || null, array);
-		} else {
-			// process them slowly
+		if (array.length > 0) {
 			timer = setTimeout(processor, delay || 25);
+		} else if (callback) {
+			// process them slowly
+			callback.call(context || null, array);
 		}
 		return this;
 	},
@@ -266,6 +288,26 @@ ArrayObject.addUnwrappedProperty({
 			iterator.call(context || null, this[i], i, this);
 			i++;
 		}
+	},
+	parallelEach : function(iterator, threads, callback, context) {
+		threads = threads >>> 0 || 1;
+		var array = this, temp = this.toArray(), i = 0, active = 1, length = temp.length, next = function(x) {
+			--active;
+			while (active < threads && temp.length > 0) {
+				++active;
+				iterator.call(context || null, next, temp.shift(), i++, array);
+			}
+			if (length-- === 0 && active === 0) {
+				// we're done, run the callback
+				if (callback) {
+					callback.call(context || null, array);
+				}
+				return;
+			}
+		};
+		// start the first iteration
+		next();
+		return this;
 	},
 	some : arrayProto.some || function(iterator, context) {
 		var i = 0, len = this.length;
@@ -315,7 +357,9 @@ ArrayObject.addUnwrappedProperty({
 		var array = this, temp = this.toArray(), i = 0, next = function() {
 			if (temp.length === 0) {
 				// we're done, run the callback
-				callback && callback.call(context || null, array);
+				if (callback) {
+					callback.call(context || null, array);
+				}
 				return;
 			}
 			iterator.call(context || null, next, temp.shift(), i++, array);
@@ -328,19 +372,25 @@ ArrayObject.addUnwrappedProperty({
 		var array = this, len = this.length, completeCalled = false, complete = function() {
 			if (--len === 0 && !completeCalled) {
 				completeCalled = true;
-				callback && callback.call(context || null, array);
+				if (callback) {
+					callback.call(context || null, array);
+				}
 			}
 		};
 		// if there are no items to process then just call the callback
 		if (array.length === 0) {
-			callback && callback.call(context || null, array);
+			if (callback) {
+				callback.call(context || null, array);
+			}
 			return this;
 		}
 		return this.asyncEach(function(v, i, array) {
 			if (iterator.call(context || null, complete, v, i, array) === false) {
 				// if we bail out early, then
 				completeCalled = true;
-				callback && callback.call(context || null, array);
+				if (callback) {
+					callback.call(context || null, array);
+				}
 				return false;
 			}
 		}, null, context, 1);

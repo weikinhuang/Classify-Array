@@ -29,6 +29,23 @@ QUnit.test("basic creation and access", function() {
 	QUnit.equal(aArray[2], cInstance[2], "toArray method returns array with proper values");
 });
 
+QUnit.test("Utilities from es5 and es6", function() {
+	QUnit.expect(6);
+	var cArray = Classify("/Array");
+
+	// is Array
+	QUnit.equal(cArray.isArray([]), true, "true Array is an array");
+	QUnit.equal(cArray.isArray(new cArray()), false, "Classify Array is not an array");
+	QUnit.equal(cArray.isArray({}), false, "Object is not an array");
+	QUnit.equal(cArray.isArray(null), false, "null is not an array");
+
+	// from
+	QUnit.equal(cArray.from("some").join(","), "s,o,m,e", "String is converted to an array");
+
+	// of
+	QUnit.equal(cArray.of(1, 2, 3).join(), "1,2,3", "Array of creates an array from arguments");
+});
+
 QUnit.test("Using the get accessor method", function() {
 	QUnit.expect(14);
 	var undefined;
@@ -134,7 +151,7 @@ QUnit.test("sort", function() {
 
 	var cInstancefn = cArray(1, 2, 3, 4, 5);
 	cInstancefn.sort(function(l, r) {
-		if(l === r) {
+		if (l === r) {
 			return 0;
 		}
 		return l > r ? -1 : 1;
@@ -488,6 +505,49 @@ QUnit.test("map", function() {
 		multiplier : 3
 	});
 	QUnit.equal(tripled.join(", "), "3, 6, 9", "tripled numbers with context");
+});
+
+QUnit.test("parallelEach", function() {
+	QUnit.expect(10);
+	var cArray = Classify("/Array");
+
+	// basic iteration
+	QUnit.stop();
+	var index = 0;
+	cArray(1, 2, 3, 4, 5, 6).parallelEach(function(next, v, i, array) {
+		QUnit.start();
+		QUnit.equal(v, i + 1, "threadEach iterator provide value and index");
+		index++;
+		QUnit.stop();
+		next();
+	}, 2, function(array) {
+		QUnit.start();
+		QUnit.equal(index, 6, "threadEach calls completion callback when all items are processed");
+	});
+
+	// context passing
+	QUnit.stop();
+	cArray(1).parallelEach(function(next, v, i, array) {
+		QUnit.start();
+		QUnit.equal(this.multiplier, 2, "context passed to threadEach iterator");
+		QUnit.stop();
+		next();
+	}, 2, function(array) {
+		QUnit.start();
+		QUnit.equal(this.multiplier, 2, "context passed to threadEach complete callback");
+	}, {
+		multiplier : 2
+	});
+
+	// handle empty arrays
+	var empty_i = 0;
+	QUnit.stop();
+	cArray().parallelEach(function(next, v, i, array) {
+		empty_i++;
+	}, 2, function(array) {
+		QUnit.start();
+		QUnit.equal(empty_i, 0, "Empty array not iterated over in threadEach");
+	});
 });
 
 QUnit.test("some", function() {

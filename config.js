@@ -33,7 +33,10 @@ module.exports = function(build) {
 		perFile : false,
 		// the options to run the linter with
 		options : {
-			expr : true,
+			latedef : true,
+			noempty : true,
+			undef : true,
+			strict : true,
 			node : true,
 			browser : true,
 			predef : [ "Classify" ]
