@@ -5,15 +5,33 @@
  * Copyright 2012, Wei Kin Huang
  * Classify-Array is freely distributable under the MIT license.
  *
- * Date: Fri, 29 Jun 2012 22:04:12 GMT
+ * Date: Fri, 06 Jul 2012 18:12:52 GMT
  */
 (function(root, undefined) {
 	"use strict";
 
 	var bootstrap = function(Classify) {
 		// shortcut reference to the array prototype
-var arrayProto = Array.prototype, toString = Object.prototype.toString, hasOwn = Object.prototype.hasOwnProperty, map, filter, indexOf, flatten, ArrayObject;
+var arrayProto = Array.prototype,
+// shortcut to toString
+toString = Object.prototype.toString,
+// shortcut to hasOwnProperty
+hasOwn = Object.prototype.hasOwnProperty,
+// other variables
+toNumber, map, filter, indexOf, flatten, ArrayObject;
 
+// converts something that looks like a number to a number
+toNumber = function(n) {
+	var i = Number(n);
+	if (i !== i) {
+		return 0;
+	} else if (i !== 0 && i !== Infinity && i !== -Infinity) {
+		return (i > 0 || -1) * Math.floor(Math.abs(i));
+	}
+	return i;
+};
+
+// wrapped indexof
 indexOf = arrayProto.indexOf ? function(array, value) {
 	return arrayProto.indexOf.call(array, value);
 } : function(array, value) {
@@ -27,6 +45,7 @@ indexOf = arrayProto.indexOf ? function(array, value) {
 	return -1;
 };
 
+// flattens an array of arrays
 flatten = function(args) {
 	var i = 0, len = args.length, result = [];
 	while (i < len) {
@@ -171,12 +190,7 @@ ArrayObject.addUnwrappedProperty({
 			return -1;
 		}
 		if (arguments.length > 1) {
-			i = Number(from);
-			if (i !== i) {
-				i = 0;
-			} else if (i !== 0 && i !== Infinity && i !== -Infinity) {
-				i = (i > 0 || -1) * Math.floor(Math.abs(i));
-			}
+			i = toNumber(from);
 		}
 		if (i >= len) {
 			return -1;
@@ -194,12 +208,7 @@ ArrayObject.addUnwrappedProperty({
 			return -1;
 		}
 		if (arguments.length > 1) {
-			n = Number(from);
-			if (n !== n) {
-				n = 0;
-			} else if (n !== 0 && n !== Infinity && n !== -Infinity) {
-				n = (n > 0 || -1) * Math.floor(Math.abs(n));
-			}
+			n = toNumber(from);
 		}
 		k = n >= 0 ? Math.min(n, len - 1) : len - Math.abs(n);
 		for (; k >= 0; k--) {
