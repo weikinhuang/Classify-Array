@@ -5,7 +5,7 @@ toString = Object.prototype.toString,
 // shortcut to hasOwnProperty
 hasOwn = Object.prototype.hasOwnProperty,
 // other variables
-toNumber, map, filter, indexOf, flatten, ArrayObject;
+toNumber, toObject, map, filter, indexOf, flatten, ArrayObject;
 
 // converts something that looks like a number to a number
 toNumber = function(n) {
@@ -16,6 +16,23 @@ toNumber = function(n) {
 		return (i > 0 || -1) * Math.floor(Math.abs(i));
 	}
 	return i;
+};
+
+// If the implementation doesn't support by-index access of
+// string characters (ex. IE < 9), convert the string to an array
+toObject = arrayProto.slice.call("ab").join(",") !== "a,b" ? function(o) {
+	if (o == null) {
+		throw new TypeError("Null and Undefined cannot be converted to an object.");
+	}
+	if (typeof o == "string" && o) {
+		return o.split("");
+	}
+	return Object(o);
+} : function(o) {
+	if (o == null) {
+		throw new TypeError("Null and Undefined cannot be converted to an object.");
+	}
+	return Object(o);
 };
 
 // wrapped indexof
@@ -78,7 +95,7 @@ if (arrayProto.filter) {
 	};
 }
 
-ArrayObject = Classify.getGlobalNamespace().create("Array", Array, {
+ArrayObject = Classify.getGlobalNamespace().create("Array", {
 	length : 0,
 	init : function() {
 		this.push.apply(this, arguments);
@@ -90,7 +107,7 @@ ArrayObject.isArray = Array.isArray || function isArray(obj) {
 };
 
 ArrayObject.from = function(iterable) {
-	var object = Object, obj = object(iterable), arrayobj = new ArrayObject(), array = [], i = 0, length = obj.length >>> 0;
+	var obj = toObject(iterable), arrayobj = new ArrayObject(), array = [], i = 0, length = obj.length >>> 0;
 	for (; i < length; i++) {
 		if (hasOwn.call(obj, i)) {
 			array[i] = obj[i];
